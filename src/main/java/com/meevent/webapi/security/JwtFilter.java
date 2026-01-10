@@ -48,7 +48,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         final String email = jwtService.extractUsername(token);
-        final String rol = jwtService.extractRol(token);
+        final String rol = jwtService.extractRole(token);
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
@@ -64,7 +64,7 @@ public class JwtFilter extends OncePerRequestFilter {
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        LOGGER.debug("Usuario autenticado: {} | Rol: {}", email, rol);
+        LOGGER.debug("User autenticado: {} | Rol: {}", email, rol);
 
         filterChain.doFilter(request, response);
     }

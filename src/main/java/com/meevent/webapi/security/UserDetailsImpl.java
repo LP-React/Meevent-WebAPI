@@ -1,7 +1,6 @@
 package com.meevent.webapi.security;
 
-import com.meevent.webapi.model.Usuario;
-import lombok.RequiredArgsConstructor;
+import com.meevent.webapi.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,20 +9,21 @@ import java.util.Collection;
 import java.util.List;
 
 
-public class UsuarioDetails implements UserDetails {
+public class UserDetailsImpl implements UserDetails {
+
     private final Long id;
     private final String email;
     private final String password;
-    private final boolean activo;
+    private final boolean active;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public UsuarioDetails(Usuario usuario) {
-        this.id = usuario.getIdUsuario();
-        this.email = usuario.getCorreoElectronico();
-        this.password = usuario.getContrasenaHash();
-        this.activo = usuario.getCuentaActiva();
+    public UserDetailsImpl(User user) {
+        this.id = user.getUserId();
+        this.email = user.getEmail();
+        this.password = user.getPasswordHash();
+        this.active = user.getActive();
         this.authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_" + usuario.getTipoUsuario().name())
+                new SimpleGrantedAuthority("ROLE_" + user.getUserType().name())
         );
     }
 
@@ -43,7 +43,7 @@ public class UsuarioDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return activo;
+        return active;
     }
 
     @Override

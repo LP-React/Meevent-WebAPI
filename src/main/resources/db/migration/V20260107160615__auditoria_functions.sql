@@ -1,98 +1,99 @@
-CREATE OR REPLACE FUNCTION fn_auditoria_trigger()
+CREATE OR REPLACE FUNCTION fn_audit_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
-    v_datos_anteriores JSONB;
-    v_datos_nuevos JSONB;
-    v_campos_modificados TEXT[];
-    v_usuario_id INTEGER;
-    v_usuario_email VARCHAR(150);
-    v_usuario_nombre VARCHAR(150);
-    v_ip VARCHAR(45);
+    v_old_data JSONB;
+    v_new_data JSONB;
+    v_modified_fields TEXT[];
+    v_user_id INTEGER;
+    v_user_email VARCHAR(150);
+    v_user_name VARCHAR(150);
+    v_ip_address VARCHAR(45);
     v_user_agent TEXT;
-    v_origen VARCHAR(50);
-    v_registro_id INTEGER;
+    v_source VARCHAR(50);
+    v_record_id INTEGER;
     key TEXT;
 BEGIN
-    -- Contexto de usuario
+    -- User context
     BEGIN
-        v_usuario_id := current_setting('app.usuario_id', true)::INTEGER;
-        v_usuario_email := current_setting('app.usuario_email', true);
-        v_usuario_nombre := current_setting('app.usuario_nombre', true);
-        v_ip := current_setting('app.ip_address', true);
+        v_user_id := current_setting('app.user_id', true)::INTEGER;
+        v_user_email := current_setting('app.user_email', true);
+        v_user_name := current_setting('app.user_name', true);
+        v_ip_address := current_setting('app.ip_address', true);
         v_user_agent := current_setting('app.user_agent', true);
-        v_origen := COALESCE(current_setting('app.origen', true), 'SYSTEM');
+        v_source := COALESCE(current_setting('app.source', true), 'SYSTEM');
     EXCEPTION
         WHEN OTHERS THEN
-            v_usuario_id := NULL;
-            v_usuario_email := NULL;
-            v_usuario_nombre := NULL;
-            v_ip := NULL;
+            v_user_id := NULL;
+            v_user_email := NULL;
+            v_user_name := NULL;
+            v_ip_address := NULL;
             v_user_agent := NULL;
-            v_origen := 'SYSTEM';
+            v_source := 'SYSTEM';
     END;
 
-    -- Obtener PK dinámicamente
+    -- Dynamically resolve PK (passed as TG_ARGV[0])
     IF TG_OP = 'DELETE' THEN
         EXECUTE format('SELECT ($1).%I', TG_ARGV[0])
-        INTO v_registro_id
+        INTO v_record_id
         USING OLD;
     ELSE
         EXECUTE format('SELECT ($1).%I', TG_ARGV[0])
-        INTO v_registro_id
+        INTO v_record_id
         USING NEW;
     END IF;
 
     IF TG_OP = 'DELETE' THEN
-        v_datos_anteriores := row_to_json(OLD)::JSONB;
-        v_datos_nuevos := NULL;
+        v_old_data := row_to_json(OLD)::JSONB;
+        v_new_data := NULL;
 
     ELSIF TG_OP = 'UPDATE' THEN
-        v_datos_anteriores := row_to_json(OLD)::JSONB;
-        v_datos_nuevos := row_to_json(NEW)::JSONB;
+        v_old_data := row_to_json(OLD)::JSONB;
+        v_new_data := row_to_json(NEW)::JSONB;
 
-        v_campos_modificados := ARRAY[]::TEXT[];
-        FOR key IN SELECT jsonb_object_keys(v_datos_nuevos)
+        v_modified_fields := ARRAY[]::TEXT[];
+        FOR key IN SELECT jsonb_object_keys(v_new_data)
         LOOP
-            IF v_datos_anteriores->key IS DISTINCT FROM v_datos_nuevos->key THEN
-                v_campos_modificados := array_append(v_campos_modificados, key);
+            IF v_old_data->key IS DISTINCT FROM v_new_data->key THEN
+                v_modified_fields := array_append(v_modified_fields, key);
             END IF;
         END LOOP;
 
-        IF array_length(v_campos_modificados, 1) IS NULL THEN
+        -- No real changes, skip audit
+        IF array_length(v_modified_fields, 1) IS NULL THEN
             RETURN NEW;
         END IF;
 
     ELSIF TG_OP = 'INSERT' THEN
-        v_datos_anteriores := NULL;
-        v_datos_nuevos := row_to_json(NEW)::JSONB;
+        v_old_data := NULL;
+        v_new_data := row_to_json(NEW)::JSONB;
     END IF;
 
-    INSERT INTO auditoria (
-        tabla_nombre,
-        operacion,
-        registro_id,
-        datos_anteriores,
-        datos_nuevos,
-        campos_modificados,
-        usuario_id,
-        usuario_email,
-        usuario_nombre,
-        direccion_ip,
+    INSERT INTO audit_logs (
+        table_name,
+        operation,
+        record_id,
+        old_data,
+        new_data,
+        modified_fields,
+        user_id,
+        user_email,
+        user_name,
+        ip_address,
         user_agent,
-        origen
+        source
     ) VALUES (
         TG_TABLE_NAME,
         TG_OP,
-        v_registro_id,
-        v_datos_anteriores,
-        v_datos_nuevos,
-        v_campos_modificados,
-        v_usuario_id,
-        v_usuario_email,
-        v_usuario_nombre,
-        v_ip,
+        v_record_id,
+        v_old_data,
+        v_new_data,
+        v_modified_fields,
+        v_user_id,
+        v_user_email,
+        v_user_name,
+        v_ip_address,
         v_user_agent,
-        v_origen
+        v_source
     );
 
     RETURN COALESCE(NEW, OLD);

@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
         LOGGER.warn("Access denied: {}", ex.getMessage());
         return buildResponse(
                 HttpStatus.FORBIDDEN,
-                "No tienes permisos para esta acción",
+                "You don't have permission for this action.",
                 request
         );
     }

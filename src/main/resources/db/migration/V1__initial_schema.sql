@@ -1,354 +1,353 @@
-CREATE TABLE paises (
-    id_pais SERIAL PRIMARY KEY,
-    nombre_pais VARCHAR(100) NOT NULL,
-    codigo_iso VARCHAR(3) NOT NULL
+CREATE TABLE countries (
+    country_id SERIAL PRIMARY KEY,
+    country_name VARCHAR(100) NOT NULL,
+    iso_code VARCHAR(3) NOT NULL
 );
 
-CREATE TABLE ciudades (
-    id_ciudad SERIAL PRIMARY KEY,
-    nombre_ciudad VARCHAR(100) NOT NULL,
-    pais_id INTEGER NOT NULL,
-    CONSTRAINT fk_ciudades_pais FOREIGN KEY (pais_id)
-        REFERENCES paises(id_pais)
+CREATE TABLE cities (
+    city_id SERIAL PRIMARY KEY,
+    city_name VARCHAR(100) NOT NULL,
+    country_id INTEGER NOT NULL,
+    CONSTRAINT fk_cities_country FOREIGN KEY (country_id)
+        REFERENCES countries(country_id)
 );
 
-CREATE TABLE categorias_evento (
-    id_categoria_evento SERIAL PRIMARY KEY,
-    nombre_categoria VARCHAR(100) NOT NULL,
-    slug_categoria VARCHAR(100) NOT NULL UNIQUE,
-    icono_url VARCHAR(500),
-    estado BOOLEAN NOT NULL DEFAULT TRUE
+CREATE TABLE event_categories (
+    event_category_id SERIAL PRIMARY KEY,
+    category_name VARCHAR(100) NOT NULL,
+    category_slug VARCHAR(100) NOT NULL UNIQUE,
+    icon_url VARCHAR(500),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE subcategorias_evento (
-    id_subcategoria_evento SERIAL PRIMARY KEY,
-    nombre_subcategoria VARCHAR(100) NOT NULL,
-    slug_subcategoria VARCHAR(100) NOT NULL,
-    categoria_evento_id INTEGER NOT NULL,
-    estado BOOLEAN NOT NULL DEFAULT TRUE,
-    CONSTRAINT fk_subcategorias_evento_categoria FOREIGN KEY (categoria_evento_id)
-        REFERENCES categorias_evento(id_categoria_evento)
+CREATE TABLE event_subcategories (
+    event_subcategory_id SERIAL PRIMARY KEY,
+    subcategory_name VARCHAR(100) NOT NULL,
+    subcategory_slug VARCHAR(100) NOT NULL,
+    event_category_id INTEGER NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_event_subcategories_category FOREIGN KEY (event_category_id)
+        REFERENCES event_categories(event_category_id)
 );
 
--- Tabla: categorias_plan
-CREATE TABLE categorias_plan (
-    id_categoria_plan SERIAL PRIMARY KEY,
-    nombre_categoria_plan VARCHAR(100) NOT NULL
+CREATE TABLE plan_categories (
+    plan_category_id SERIAL PRIMARY KEY,
+    category_name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE subcategorias_plan (
-    id_subcategoria_plan SERIAL PRIMARY KEY,
-    nombre_subcategoria_plan VARCHAR(100) NOT NULL,
-    categoria_plan_id INTEGER NOT NULL,
-    CONSTRAINT fk_subcategorias_plan_categoria FOREIGN KEY (categoria_plan_id)
-        REFERENCES categorias_plan(id_categoria_plan)
+CREATE TABLE plan_subcategories (
+    plan_subcategory_id SERIAL PRIMARY KEY,
+    subcategory_name VARCHAR(100) NOT NULL,
+    plan_category_id INTEGER NOT NULL,
+    CONSTRAINT fk_plan_subcategories_category FOREIGN KEY (plan_category_id)
+        REFERENCES plan_categories(plan_category_id)
 );
 
-CREATE TABLE locales (
-    id_local SERIAL PRIMARY KEY,
-    nombre_local VARCHAR(200) NOT NULL,
-    capacidad_local INTEGER NOT NULL,
-    direccion_local VARCHAR(300) NOT NULL,
-    ciudad_id INTEGER NOT NULL,
-    slug_local VARCHAR(220) NOT NULL DEFAULT '',
-    latitud NUMERIC(9, 6) NOT NULL DEFAULT 0.0,
-    longitud NUMERIC(9, 6) NOT NULL DEFAULT 0.0,
-    CONSTRAINT fk_locales_ciudad FOREIGN KEY (ciudad_id)
-        REFERENCES ciudades(id_ciudad)
+CREATE TABLE venues (
+    venue_id SERIAL PRIMARY KEY,
+    venue_name VARCHAR(200) NOT NULL,
+    venue_capacity INTEGER NOT NULL,
+    venue_address VARCHAR(300) NOT NULL,
+    city_id INTEGER NOT NULL,
+    venue_slug VARCHAR(220) NOT NULL DEFAULT '',
+    latitude NUMERIC(9, 6) NOT NULL DEFAULT 0.0,
+    longitude NUMERIC(9, 6) NOT NULL DEFAULT 0.0,
+    CONSTRAINT fk_venues_city FOREIGN KEY (city_id)
+        REFERENCES cities(city_id)
 );
 
-CREATE TABLE codigos_promocionales (
-    id_codigo_promocional SERIAL PRIMARY KEY,
-    codigo_promocional VARCHAR(50) NOT NULL UNIQUE,
-    descripcion_promocion VARCHAR(300),
-    tipo_descuento VARCHAR(20) NOT NULL DEFAULT 'porcentaje',
-    valor_descuento NUMERIC(10, 2) NOT NULL,
-    compra_minima NUMERIC(10, 2),
-    descuento_maximo NUMERIC(10, 2),
-    limite_uso INTEGER,
-    contador_uso INTEGER NOT NULL DEFAULT 0,
-    fecha_inicio_promocion TIMESTAMP NOT NULL,
-    fecha_fin_promocion TIMESTAMP NOT NULL,
-    promocion_activa BOOLEAN NOT NULL DEFAULT TRUE,
-    CONSTRAINT chk_tipo_descuento CHECK (tipo_descuento IN ('porcentaje', 'monto_fijo'))
+CREATE TABLE promo_codes (
+    promo_code_id SERIAL PRIMARY KEY,
+    promo_code VARCHAR(50) NOT NULL UNIQUE,
+    promo_description VARCHAR(300),
+    discount_type VARCHAR(20) NOT NULL DEFAULT 'percentage',
+    discount_value NUMERIC(10, 2) NOT NULL,
+    minimum_purchase NUMERIC(10, 2),
+    maximum_discount NUMERIC(10, 2),
+    usage_limit INTEGER,
+    usage_count INTEGER NOT NULL DEFAULT 0,
+    promotion_start TIMESTAMP NOT NULL,
+    promotion_end TIMESTAMP NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT chk_discount_type CHECK (discount_type IN ('percentage', 'fixed_amount'))
 );
 
 -- =============================================
--- TABLAS DE USUARIOS Y PERFILES
+-- USERS AND PROFILES
 -- =============================================
 
-CREATE TABLE usuarios (
-    id_usuario SERIAL PRIMARY KEY,
-    nombre_completo VARCHAR(150) NOT NULL,
-    correo_electronico VARCHAR(150) NOT NULL UNIQUE,
-    contrasena_hash VARCHAR(255) NOT NULL,
-    numero_telefono VARCHAR(20),
-    imagen_perfil_url VARCHAR(500),
-    fecha_nacimiento DATE,
-    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    email_verificado BOOLEAN NOT NULL DEFAULT FALSE,
-    cuenta_activa BOOLEAN NOT NULL DEFAULT TRUE,
-    tipo_usuario VARCHAR(20) NOT NULL DEFAULT 'normal',
-    id_ciudad INTEGER,
-    CONSTRAINT fk_usuarios_ciudades FOREIGN KEY (id_ciudad)
-        REFERENCES ciudades(id_ciudad),
-    CONSTRAINT chk_tipo_usuario CHECK (tipo_usuario IN ('normal', 'artista', 'organizador'))
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20),
+    profile_image_url VARCHAR(500),
+    birth_date DATE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    user_type VARCHAR(20) NOT NULL DEFAULT 'normal',
+    city_id INTEGER,
+    CONSTRAINT fk_users_city FOREIGN KEY (city_id)
+        REFERENCES cities(city_id),
+    CONSTRAINT chk_user_type CHECK (user_type IN ('normal', 'artist', 'organizer'))
 );
 
-CREATE TABLE perfiles_organizador (
-    id_perfil_organizador SERIAL PRIMARY KEY,
-    nombre_organizador VARCHAR(200) NOT NULL,
-    descripcion_organizador TEXT NOT NULL,
-    sitio_web VARCHAR(300),
+CREATE TABLE organizer_profiles (
+    organizer_profile_id SERIAL PRIMARY KEY,
+    organizer_name VARCHAR(200) NOT NULL,
+    organizer_description TEXT NOT NULL,
+    website_url VARCHAR(300),
     logo_url VARCHAR(500),
     facebook_url VARCHAR(300),
     instagram_url VARCHAR(300),
     tiktok_url VARCHAR(300),
     twitter_url VARCHAR(300),
-    direccion_organizador VARCHAR(300),
-    telefono_contacto VARCHAR(20),
-    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    usuario_id INTEGER NOT NULL UNIQUE,
-    CONSTRAINT fk_perfiles_organizador_usuario FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id_usuario)
+    address VARCHAR(300),
+    contact_phone VARCHAR(20),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL UNIQUE,
+    CONSTRAINT fk_organizer_profiles_user FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
 );
 
-CREATE TABLE perfiles_artista (
-    id_perfil_artista SERIAL PRIMARY KEY,
-    nombre_artistico VARCHAR(150) NOT NULL,
-    biografia_artista TEXT NOT NULL,
-    genero_musical VARCHAR(100) NOT NULL,
-    sitio_web VARCHAR(300),
+CREATE TABLE artist_profiles (
+    artist_profile_id SERIAL PRIMARY KEY,
+    stage_name VARCHAR(150) NOT NULL,
+    biography TEXT NOT NULL,
+    music_genre VARCHAR(100) NOT NULL,
+    website_url VARCHAR(300),
     facebook_url VARCHAR(300),
     instagram_url VARCHAR(300),
     tiktok_url VARCHAR(300),
-    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    usuario_id INTEGER NOT NULL UNIQUE,
-    CONSTRAINT fk_perfiles_artista_usuario FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id_usuario)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL UNIQUE,
+    CONSTRAINT fk_artist_profiles_user FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
 );
 
 -- =============================================
--- TABLAS DE EVENTOS Y PLANES
+-- EVENTS AND PLANS
 -- =============================================
 
-CREATE TABLE eventos (
-    id_evento SERIAL PRIMARY KEY,
-    titulo_evento VARCHAR(250) NOT NULL,
-    slug_evento VARCHAR(250) NOT NULL UNIQUE,
-    descripcion_evento TEXT NOT NULL,
-    descripcion_corta VARCHAR(500),
-    fecha_inicio TIMESTAMPTZ NOT NULL,
-    fecha_fin TIMESTAMPTZ NOT NULL,
-    zona_horaria VARCHAR(50) NOT NULL DEFAULT 'UTC',
-    estado_evento VARCHAR(20) NOT NULL DEFAULT 'borrador',
-    capacidad_evento INTEGER NOT NULL,
-    evento_gratuito BOOLEAN NOT NULL DEFAULT FALSE,
-    evento_online BOOLEAN NOT NULL DEFAULT FALSE,
-    imagen_portada_url VARCHAR(500),
-    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    perfil_organizador_id INTEGER NOT NULL,
-    subcategoria_evento_id INTEGER NOT NULL,
-    local_id INTEGER,
-    CONSTRAINT fk_eventos_organizador FOREIGN KEY (perfil_organizador_id)
-        REFERENCES perfiles_organizador(id_perfil_organizador),
-    CONSTRAINT fk_eventos_subcategoria FOREIGN KEY (subcategoria_evento_id)
-        REFERENCES subcategorias_evento(id_subcategoria_evento),
-    CONSTRAINT fk_eventos_local FOREIGN KEY (local_id)
-        REFERENCES locales(id_local),
-    CONSTRAINT chk_estado_evento CHECK (estado_evento IN ('borrador', 'publicado', 'cancelado', 'finalizado'))
+CREATE TABLE events (
+    event_id SERIAL PRIMARY KEY,
+    event_title VARCHAR(250) NOT NULL,
+    event_slug VARCHAR(250) NOT NULL UNIQUE,
+    event_description TEXT NOT NULL,
+    short_description VARCHAR(500),
+    start_date TIMESTAMPTZ NOT NULL,
+    end_date TIMESTAMPTZ NOT NULL,
+    time_zone VARCHAR(50) NOT NULL DEFAULT 'UTC',
+    event_status VARCHAR(20) NOT NULL DEFAULT 'draft',
+    event_capacity INTEGER NOT NULL,
+    is_free BOOLEAN NOT NULL DEFAULT FALSE,
+    is_online BOOLEAN NOT NULL DEFAULT FALSE,
+    cover_image_url VARCHAR(500),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    organizer_profile_id INTEGER NOT NULL,
+    event_subcategory_id INTEGER NOT NULL,
+    venue_id INTEGER,
+    CONSTRAINT fk_events_organizer FOREIGN KEY (organizer_profile_id)
+        REFERENCES organizer_profiles(organizer_profile_id),
+    CONSTRAINT fk_events_subcategory FOREIGN KEY (event_subcategory_id)
+        REFERENCES event_subcategories(event_subcategory_id),
+    CONSTRAINT fk_events_venue FOREIGN KEY (venue_id)
+        REFERENCES venues(venue_id),
+    CONSTRAINT chk_event_status CHECK (event_status IN ('draft', 'published', 'cancelled', 'finished'))
 );
 
-CREATE TABLE imagenes_evento (
-    id_imagen_evento SERIAL PRIMARY KEY,
-    url_imagen VARCHAR(500) NOT NULL,
-    texto_alternativo VARCHAR(200),
-    orden_imagen INTEGER NOT NULL DEFAULT 0,
-    evento_id INTEGER NOT NULL,
-    CONSTRAINT fk_imagenes_evento_evento FOREIGN KEY (evento_id)
-        REFERENCES eventos(id_evento)
+CREATE TABLE event_images (
+    event_image_id SERIAL PRIMARY KEY,
+    image_url VARCHAR(500) NOT NULL,
+    alt_text VARCHAR(200),
+    image_order INTEGER NOT NULL DEFAULT 0,
+    event_id INTEGER NOT NULL,
+    CONSTRAINT fk_event_images_event FOREIGN KEY (event_id)
+        REFERENCES events(event_id)
 );
 
-CREATE TABLE tipos_ticket (
-    id_tipo_ticket SERIAL PRIMARY KEY,
-    nombre_ticket VARCHAR(150) NOT NULL,
-    descripcion_ticket VARCHAR(500),
-    precio_ticket NUMERIC(10, 2) NOT NULL,
-    cantidad_total INTEGER NOT NULL,
-    cantidad_vendida INTEGER NOT NULL DEFAULT 0,
-    cantidad_disponible INTEGER NOT NULL,
-    fecha_inicio_venta TIMESTAMP NOT NULL,
-    fecha_fin_venta TIMESTAMP NOT NULL,
-    compra_minima INTEGER NOT NULL DEFAULT 1,
-    compra_maxima INTEGER NOT NULL DEFAULT 10,
-    ticket_activo BOOLEAN NOT NULL DEFAULT TRUE,
-    evento_id INTEGER NOT NULL,
-    CONSTRAINT fk_tipos_ticket_evento FOREIGN KEY (evento_id)
-        REFERENCES eventos(id_evento)
+CREATE TABLE ticket_types (
+    ticket_type_id SERIAL PRIMARY KEY,
+    ticket_name VARCHAR(150) NOT NULL,
+    ticket_description VARCHAR(500),
+    ticket_price NUMERIC(10, 2) NOT NULL,
+    total_quantity INTEGER NOT NULL,
+    sold_quantity INTEGER NOT NULL DEFAULT 0,
+    available_quantity INTEGER NOT NULL,
+    sales_start TIMESTAMP NOT NULL,
+    sales_end TIMESTAMP NOT NULL,
+    min_purchase INTEGER NOT NULL DEFAULT 1,
+    max_purchase INTEGER NOT NULL DEFAULT 10,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    event_id INTEGER NOT NULL,
+    CONSTRAINT fk_ticket_types_event FOREIGN KEY (event_id)
+        REFERENCES events(event_id)
 );
 
-CREATE TABLE planes (
-    id_plan SERIAL PRIMARY KEY,
-    titulo_plan VARCHAR(250) NOT NULL,
-    descripcion_plan TEXT NOT NULL,
-    subcategoria_plan_id INTEGER NOT NULL,
-    CONSTRAINT fk_planes_subcategoria FOREIGN KEY (subcategoria_plan_id)
-        REFERENCES subcategorias_plan(id_subcategoria_plan)
+CREATE TABLE plans (
+    plan_id SERIAL PRIMARY KEY,
+    plan_title VARCHAR(250) NOT NULL,
+    plan_description TEXT NOT NULL,
+    plan_subcategory_id INTEGER NOT NULL,
+    CONSTRAINT fk_plans_subcategory FOREIGN KEY (plan_subcategory_id)
+        REFERENCES plan_subcategories(plan_subcategory_id)
 );
 
-CREATE TABLE imagenes_plan (
-    id_imagen_plan SERIAL PRIMARY KEY,
-    url_imagen_plan VARCHAR(500) NOT NULL,
+CREATE TABLE plan_images (
+    plan_image_id SERIAL PRIMARY KEY,
+    image_url VARCHAR(500) NOT NULL,
     plan_id INTEGER NOT NULL,
-    CONSTRAINT fk_imagenes_plan_plan FOREIGN KEY (plan_id)
-        REFERENCES planes(id_plan)
+    CONSTRAINT fk_plan_images_plan FOREIGN KEY (plan_id)
+        REFERENCES plans(plan_id)
 );
 
 -- =============================================
--- TABLAS DE ORDENES Y PAGOS
+-- ORDERS AND PAYMENTS
 -- =============================================
 
-CREATE TABLE ordenes (
-    id_orden SERIAL PRIMARY KEY,
-    numero_orden VARCHAR(50) NOT NULL UNIQUE,
-    subtotal_orden NUMERIC(10, 2) NOT NULL,
-    impuesto_orden NUMERIC(10, 2) NOT NULL DEFAULT 0,
-    tarifa_servicio NUMERIC(10, 2) NOT NULL DEFAULT 0,
-    descuento_orden NUMERIC(10, 2) NOT NULL DEFAULT 0,
-    total_orden NUMERIC(10, 2) NOT NULL,
-    estado_orden VARCHAR(20) NOT NULL DEFAULT 'pendiente',
-    email_cliente VARCHAR(150) NOT NULL,
-    nombre_cliente VARCHAR(150) NOT NULL,
-    telefono_cliente VARCHAR(20),
-    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    usuario_id INTEGER NOT NULL,
-    codigo_promocional_id INTEGER,
-    CONSTRAINT fk_ordenes_usuario FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id_usuario),
-    CONSTRAINT fk_ordenes_codigo_promocional FOREIGN KEY (codigo_promocional_id)
-        REFERENCES codigos_promocionales(id_codigo_promocional),
-    CONSTRAINT chk_estado_orden CHECK (estado_orden IN ('pendiente', 'completado', 'cancelado', 'reembolsado'))
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    order_number VARCHAR(50) NOT NULL UNIQUE,
+    subtotal NUMERIC(10, 2) NOT NULL,
+    tax NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    service_fee NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    discount NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    total NUMERIC(10, 2) NOT NULL,
+    order_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    customer_email VARCHAR(150) NOT NULL,
+    customer_name VARCHAR(150) NOT NULL,
+    customer_phone VARCHAR(20),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
+    promo_code_id INTEGER,
+    CONSTRAINT fk_orders_user FOREIGN KEY (user_id)
+        REFERENCES users(user_id),
+    CONSTRAINT fk_orders_promo_code FOREIGN KEY (promo_code_id)
+        REFERENCES promo_codes(promo_code_id),
+    CONSTRAINT chk_order_status CHECK (order_status IN ('pending', 'completed', 'cancelled', 'refunded'))
 );
 
-CREATE TABLE items_orden (
-    id_item_orden SERIAL PRIMARY KEY,
-    cantidad_item INTEGER NOT NULL,
-    precio_unitario NUMERIC(10, 2) NOT NULL,
-    subtotal_item NUMERIC(10, 2) NOT NULL,
-    orden_id INTEGER NOT NULL,
-    tipo_ticket_id INTEGER NOT NULL,
-    CONSTRAINT fk_items_orden_orden FOREIGN KEY (orden_id)
-        REFERENCES ordenes(id_orden),
-    CONSTRAINT fk_items_orden_tipo_ticket FOREIGN KEY (tipo_ticket_id)
-        REFERENCES tipos_ticket(id_tipo_ticket)
+CREATE TABLE order_items (
+    order_item_id SERIAL PRIMARY KEY,
+    quantity INTEGER NOT NULL,
+    unit_price NUMERIC(10, 2) NOT NULL,
+    subtotal NUMERIC(10, 2) NOT NULL,
+    order_id INTEGER NOT NULL,
+    ticket_type_id INTEGER NOT NULL,
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id)
+        REFERENCES orders(order_id),
+    CONSTRAINT fk_order_items_ticket_type FOREIGN KEY (ticket_type_id)
+        REFERENCES ticket_types(ticket_type_id)
 );
 
-CREATE TABLE asistentes (
-    id_asistente SERIAL PRIMARY KEY,
-    numero_ticket VARCHAR(50) NOT NULL UNIQUE,
-    nombre_asistente VARCHAR(100) NOT NULL,
-    apellido_asistente VARCHAR(100) NOT NULL,
-    email_asistente VARCHAR(150) NOT NULL,
-    telefono_asistente VARCHAR(20),
-    registro_entrada BOOLEAN NOT NULL DEFAULT FALSE,
-    fecha_entrada TIMESTAMP,
-    codigo_qr VARCHAR(500) NOT NULL,
-    orden_id INTEGER NOT NULL,
-    tipo_ticket_id INTEGER NOT NULL,
-    CONSTRAINT fk_asistentes_orden FOREIGN KEY (orden_id)
-        REFERENCES ordenes(id_orden),
-    CONSTRAINT fk_asistentes_tipo_ticket FOREIGN KEY (tipo_ticket_id)
-        REFERENCES tipos_ticket(id_tipo_ticket)
+CREATE TABLE attendees (
+    attendee_id SERIAL PRIMARY KEY,
+    ticket_number VARCHAR(50) NOT NULL UNIQUE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    phone VARCHAR(20),
+    checked_in BOOLEAN NOT NULL DEFAULT FALSE,
+    check_in_time TIMESTAMP,
+    qr_code VARCHAR(500) NOT NULL,
+    order_id INTEGER NOT NULL,
+    ticket_type_id INTEGER NOT NULL,
+    CONSTRAINT fk_attendees_order FOREIGN KEY (order_id)
+        REFERENCES orders(order_id),
+    CONSTRAINT fk_attendees_ticket_type FOREIGN KEY (ticket_type_id)
+        REFERENCES ticket_types(ticket_type_id)
 );
 
-CREATE TABLE pagos (
-    id_pago SERIAL PRIMARY KEY,
-    metodo_pago VARCHAR(50) NOT NULL,
-    monto_pago NUMERIC(10, 2) NOT NULL,
-    moneda_pago VARCHAR(10) NOT NULL DEFAULT 'PEN',
-    estado_pago VARCHAR(20) NOT NULL DEFAULT 'pendiente',
-    transaccion_id VARCHAR(100),
-    gateway_pago VARCHAR(50),
-    respuesta_gateway TEXT,
-    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_completado TIMESTAMP,
-    fecha_reembolso TIMESTAMP,
-    orden_id INTEGER NOT NULL,
-    CONSTRAINT fk_pagos_orden FOREIGN KEY (orden_id)
-        REFERENCES ordenes(id_orden),
-    CONSTRAINT chk_estado_pago CHECK (estado_pago IN ('pendiente', 'completado', 'fallido', 'reembolsado'))
+CREATE TABLE payments (
+    payment_id SERIAL PRIMARY KEY,
+    payment_method VARCHAR(50) NOT NULL,
+    amount NUMERIC(10, 2) NOT NULL,
+    currency VARCHAR(10) NOT NULL DEFAULT 'PEN',
+    payment_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    transaction_id VARCHAR(100),
+    payment_gateway VARCHAR(50),
+    gateway_response TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP,
+    refunded_at TIMESTAMP,
+    order_id INTEGER NOT NULL,
+    CONSTRAINT fk_payments_order FOREIGN KEY (order_id)
+        REFERENCES orders(order_id),
+    CONSTRAINT chk_payment_status CHECK (payment_status IN ('pending', 'completed', 'failed', 'refunded'))
 );
 
 -- =============================================
--- TABLAS DE INTERACCIONES Y RESEÑAS
+-- INTERACTIONS AND REVIEWS
 -- =============================================
 
-CREATE TABLE lista_deseos (
-    id_lista_deseos SERIAL PRIMARY KEY,
-    tipo_item VARCHAR(20) NOT NULL,
-    fecha_agregado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    usuario_id INTEGER NOT NULL,
+CREATE TABLE wishlists (
+    wishlist_id SERIAL PRIMARY KEY,
+    item_type VARCHAR(20) NOT NULL,
+    added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
     item_id INTEGER NOT NULL,
-    CONSTRAINT fk_lista_deseos_usuario FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id_usuario),
-    CONSTRAINT chk_tipo_item CHECK (tipo_item IN ('evento', 'plan'))
+    CONSTRAINT fk_wishlists_user FOREIGN KEY (user_id)
+        REFERENCES users(user_id),
+    CONSTRAINT chk_item_type CHECK (item_type IN ('event', 'plan'))
 );
 
-CREATE TABLE seguidores_evento (
-    id_seguidor_evento SERIAL PRIMARY KEY,
-    fecha_seguimiento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    usuario_id INTEGER NOT NULL,
-    evento_id INTEGER NOT NULL,
-    CONSTRAINT fk_seguidores_evento_usuario FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id_usuario),
-    CONSTRAINT fk_seguidores_evento_evento FOREIGN KEY (evento_id)
-        REFERENCES eventos(id_evento),
-    CONSTRAINT uk_seguidores_evento UNIQUE (usuario_id, evento_id)
+CREATE TABLE event_followers (
+    event_follower_id SERIAL PRIMARY KEY,
+    followed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
+    event_id INTEGER NOT NULL,
+    CONSTRAINT fk_event_followers_user FOREIGN KEY (user_id)
+        REFERENCES users(user_id),
+    CONSTRAINT fk_event_followers_event FOREIGN KEY (event_id)
+        REFERENCES events(event_id),
+    CONSTRAINT uk_event_followers UNIQUE (user_id, event_id)
 );
 
-CREATE TABLE seguidores_plan (
-    id_seguidor_plan SERIAL PRIMARY KEY,
-    fecha_seguimiento_plan TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE plan_followers (
+    plan_follower_id SERIAL PRIMARY KEY,
+    followed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     plan_id INTEGER NOT NULL,
-    usuario_id INTEGER NOT NULL,
-    CONSTRAINT fk_seguidores_plan_plan FOREIGN KEY (plan_id)
-        REFERENCES planes(id_plan),
-    CONSTRAINT fk_seguidores_plan_usuario FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id_usuario),
-    CONSTRAINT uk_seguidores_plan UNIQUE (usuario_id, plan_id)
+    user_id INTEGER NOT NULL,
+    CONSTRAINT fk_plan_followers_plan FOREIGN KEY (plan_id)
+        REFERENCES plans(plan_id),
+    CONSTRAINT fk_plan_followers_user FOREIGN KEY (user_id)
+        REFERENCES users(user_id),
+    CONSTRAINT uk_plan_followers UNIQUE (user_id, plan_id)
 );
 
-CREATE TABLE resenas_evento (
-    id_resena_evento SERIAL PRIMARY KEY,
-    calificacion_evento INTEGER NOT NULL,
-    comentario_evento TEXT NOT NULL,
-    fue_util BOOLEAN,
-    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    usuario_id INTEGER NOT NULL,
-    evento_id INTEGER NOT NULL,
-    CONSTRAINT fk_resenas_evento_usuario FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id_usuario),
-    CONSTRAINT fk_resenas_evento_evento FOREIGN KEY (evento_id)
-        REFERENCES eventos(id_evento),
-    CONSTRAINT chk_calificacion_evento CHECK (calificacion_evento >= 1 AND calificacion_evento <= 5)
+CREATE TABLE event_reviews (
+    event_review_id SERIAL PRIMARY KEY,
+    rating INTEGER NOT NULL,
+    comment TEXT NOT NULL,
+    is_helpful BOOLEAN,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL,
+    event_id INTEGER NOT NULL,
+    CONSTRAINT fk_event_reviews_user FOREIGN KEY (user_id)
+        REFERENCES users(user_id),
+    CONSTRAINT fk_event_reviews_event FOREIGN KEY (event_id)
+        REFERENCES events(event_id),
+    CONSTRAINT chk_event_rating CHECK (rating BETWEEN 1 AND 5)
 );
 
-CREATE TABLE resenas_organizador (
-    id_resena_organizador SERIAL PRIMARY KEY,
-    calificacion_resena INTEGER NOT NULL,
-    comentario_resena TEXT NOT NULL,
-    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    contador_utilidad INTEGER NOT NULL DEFAULT 0,
-    comprador_verificado BOOLEAN NOT NULL DEFAULT FALSE,
-    perfil_organizador_id INTEGER NOT NULL,
-    usuario_id INTEGER NOT NULL,
-    CONSTRAINT fk_resenas_organizador_perfil FOREIGN KEY (perfil_organizador_id)
-        REFERENCES perfiles_organizador(id_perfil_organizador),
-    CONSTRAINT fk_resenas_organizador_usuario FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id_usuario),
-    CONSTRAINT chk_calificacion_organizador CHECK (calificacion_resena >= 1 AND calificacion_resena <= 5)
+CREATE TABLE organizer_reviews (
+    organizer_review_id SERIAL PRIMARY KEY,
+    rating INTEGER NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    helpful_count INTEGER NOT NULL DEFAULT 0,
+    verified_buyer BOOLEAN NOT NULL DEFAULT FALSE,
+    organizer_profile_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    CONSTRAINT fk_organizer_reviews_profile FOREIGN KEY (organizer_profile_id)
+        REFERENCES organizer_profiles(organizer_profile_id),
+    CONSTRAINT fk_organizer_reviews_user FOREIGN KEY (user_id)
+        REFERENCES users(user_id),
+    CONSTRAINT chk_organizer_rating CHECK (rating BETWEEN 1 AND 5)
 );

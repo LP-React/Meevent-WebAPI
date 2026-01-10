@@ -25,24 +25,24 @@ public class JwtService {
     private String secretKey;
 
     @Value("${jwt.expiration}")
-    private long jwtExpiration;
+    private long accessTokenExpiration;
 
     @Value("${jwt.refresh-expiration}")
-    private long refreshExpiration;
+    private long refreshTokenExpiration;
 
     private SecretKey signingKey;
 
-    // Inicializa la clave de firma después de que se inyecten las propiedades
+    // Initializes the signing key after properties are injected
     @PostConstruct
     void init() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Genera un token JWT para el usuario proporcionado
+    // Generates an access JWT for the given user
     public String generateToken(UserDetails userDetails) {
 
-        String rol = userDetails.getAuthorities()
+        String role = userDetails.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
@@ -53,45 +53,47 @@ public class JwtService {
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
-                .claim("rol", rol)
+                .claim("role", role)
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plusMillis(jwtExpiration)))
+                .expiration(Date.from(now.plusMillis(accessTokenExpiration)))
                 .signWith(signingKey)
                 .compact();
     }
 
+    // Generates a refresh JWT for the given user
     public String generateRefreshToken(UserDetails userDetails) {
         Instant now = Instant.now();
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plusMillis(refreshExpiration)))
+                .expiration(Date.from(now.plusMillis(refreshTokenExpiration)))
                 .signWith(signingKey)
                 .compact();
     }
 
-    // Extrae el nombre de usuario del token JWT
+    // Extracts username (email) from JWT
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
     }
 
-    // Extrae el rol del token JWT
-    public String extractRol(String token) {
-        return extractAllClaims(token).get("rol", String.class);
+    // Extracts user role from JWT
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
     }
 
-    // Valida el token verificando su firma y expiración
+    // Validates JWT signature and expiration
     public boolean isTokenValid(String token) {
         try {
             extractAllClaims(token);
             return true;
         } catch (Exception e) {
+            LOGGER.warn("Invalid JWT token", e);
             return false;
         }
     }
 
-    // Extrae todos los claims del token JWT
+    // Extracts all claims from JWT
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .verifyWith(signingKey)

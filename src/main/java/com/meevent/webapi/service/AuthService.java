@@ -3,11 +3,11 @@ package com.meevent.webapi.service;
 import com.meevent.webapi.dto.request.LoginRequest;
 import com.meevent.webapi.dto.request.RegisterRequest;
 import com.meevent.webapi.dto.response.AuthResponse;
-import com.meevent.webapi.model.Ciudad;
-import com.meevent.webapi.model.Usuario;
+import com.meevent.webapi.model.City;
+import com.meevent.webapi.model.User;
 import com.meevent.webapi.model.enums.UserRol;
-import com.meevent.webapi.repository.ICiudadRepository;
-import com.meevent.webapi.repository.IUsuarioRepository;
+import com.meevent.webapi.repository.ICityRepository;
+import com.meevent.webapi.repository.IUserRepository;
 import com.meevent.webapi.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,33 +19,33 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final IUsuarioRepository usuarioRepository;
-    private final ICiudadRepository ciudadRepository;
+    private final IUserRepository userRepository;
+    private final ICityRepository cityRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
     public AuthResponse login(LoginRequest request) {
 
-        Usuario usuario = usuarioRepository
-                .findByCorreoElectronico(request.correoElectronico())
+        User user = userRepository
+                .findByEmail(request.email())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Credenciales inválidas")
+                        new IllegalArgumentException("Invalid credentials")
                 );
 
-        if (!usuario.getCuentaActiva()) {
-            throw new IllegalStateException("Cuenta deshabilitada");
+        if (!user.getActive()) {
+            throw new IllegalStateException("Account is disabled");
         }
 
         if (!passwordEncoder.matches(
-                request.contrasena(),
-                usuario.getContrasenaHash()
+                request.password(),
+                user.getPasswordHash()
         )) {
-            throw new IllegalArgumentException("Credenciales inválidas");
+            throw new IllegalArgumentException("Invalid credentials");
         }
 
         UserDetails userDetails =
-                userDetailsService.loadUserByUsername(usuario.getCorreoElectronico());
+                userDetailsService.loadUserByUsername(user.getEmail());
 
         return new AuthResponse(
                 jwtService.generateToken(userDetails)
@@ -54,31 +54,33 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
 
-        if (usuarioRepository.existsByCorreoElectronico(request.correoElectronico())) {
-            throw new IllegalArgumentException("El correo que ingreso ya se encuentra registrado.");
+        if (userRepository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException("Email is already registered");
         }
 
-        Usuario usuario = new Usuario();
-        usuario.setNombreCompleto(request.nombreCompleto());
-        usuario.setCorreoElectronico(request.correoElectronico());
-        usuario.setContrasenaHash(
-                passwordEncoder.encode(request.contrasena())
+        User user = new User();
+        user.setFullName(request.fullName());
+        user.setEmail(request.email());
+        user.setPasswordHash(
+                passwordEncoder.encode(request.password())
         );
-        usuario.setTipoUsuario(UserRol.normal);
-        usuario.setNumeroTelefono(request.numeroTelefono());
-        usuario.setFechaNacimiento(request.fechaNacimiento());
-        usuario.setCuentaActiva(true);
-        usuario.setEmailVerificado(false);
+        user.setUserType(UserRol.normal);
+        user.setPhoneNumber(request.phoneNumber());
+        user.setBirthDate(request.birthDate());
+        user.setActive(true);
+        user.setEmailVerified(false);
 
-        Ciudad ciudad = ciudadRepository.findById(request.idCiudad())
-                .orElseThrow(() -> new RuntimeException("Ciudad no encontrada"));
+        City city = cityRepository.findById(request.cityId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("City not found")
+                );
 
-        usuario.setCiudad(ciudad);
+        user.setCity(city);
 
-        usuarioRepository.save(usuario);
+        userRepository.save(user);
 
         UserDetails userDetails =
-                userDetailsService.loadUserByUsername(usuario.getCorreoElectronico());
+                userDetailsService.loadUserByUsername(user.getEmail());
 
         return new AuthResponse(
                 jwtService.generateToken(userDetails)

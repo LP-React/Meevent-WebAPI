@@ -1,35 +1,35 @@
-CREATE TABLE auditoria (
-    id_auditoria BIGSERIAL PRIMARY KEY,
+CREATE TABLE audit_logs (
+    audit_id BIGSERIAL PRIMARY KEY,
 
-    tabla_nombre VARCHAR(100) NOT NULL,
-    operacion VARCHAR(10) NOT NULL CHECK (operacion IN ('INSERT', 'UPDATE', 'DELETE')),
-    registro_id INTEGER NOT NULL,
+    table_name VARCHAR(100) NOT NULL,
+    operation VARCHAR(10) NOT NULL CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE')),
+    record_id INTEGER NOT NULL,
 
-    datos_anteriores JSONB,
-    datos_nuevos JSONB,
-    campos_modificados TEXT[],
+    old_data JSONB,
+    new_data JSONB,
+    modified_fields TEXT[],
 
-    usuario_id INTEGER,
-    usuario_email VARCHAR(150),
-    usuario_nombre VARCHAR(150),
-    direccion_ip VARCHAR(45),
+    user_id INTEGER,
+    user_email VARCHAR(150),
+    user_name VARCHAR(150),
+    ip_address VARCHAR(45),
     user_agent TEXT,
 
-    fecha_operacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    origen VARCHAR(50),
+    operation_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    source VARCHAR(50),
 
-    CONSTRAINT fk_auditoria_usuario FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id_usuario) ON DELETE SET NULL
+    CONSTRAINT fk_audit_logs_user FOREIGN KEY (user_id)
+        REFERENCES users(user_id) ON DELETE SET NULL
 );
 
--- Índices para optimizar consultas
-CREATE INDEX idx_auditoria_tabla ON auditoria(tabla_nombre);
-CREATE INDEX idx_auditoria_operacion ON auditoria(operacion);
-CREATE INDEX idx_auditoria_registro_id ON auditoria(registro_id);
-CREATE INDEX idx_auditoria_usuario ON auditoria(usuario_id);
-CREATE INDEX idx_auditoria_fecha ON auditoria(fecha_operacion DESC);
-CREATE INDEX idx_auditoria_tabla_registro ON auditoria(tabla_nombre, registro_id);
+-- Indexes for query optimization
+CREATE INDEX idx_audit_logs_table_name ON audit_logs(table_name);
+CREATE INDEX idx_audit_logs_operation ON audit_logs(operation);
+CREATE INDEX idx_audit_logs_record_id ON audit_logs(record_id);
+CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
+CREATE INDEX idx_audit_logs_operation_timestamp ON audit_logs(operation_timestamp DESC);
+CREATE INDEX idx_audit_logs_table_record ON audit_logs(table_name, record_id);
 
--- Índice GIN para búsquedas en JSONB
-CREATE INDEX idx_auditoria_datos_anteriores ON auditoria USING GIN (datos_anteriores);
-CREATE INDEX idx_auditoria_datos_nuevos ON auditoria USING GIN (datos_nuevos);
+-- GIN indexes for JSONB search
+CREATE INDEX idx_audit_logs_old_data ON audit_logs USING GIN (old_data);
+CREATE INDEX idx_audit_logs_new_data ON audit_logs USING GIN (new_data);

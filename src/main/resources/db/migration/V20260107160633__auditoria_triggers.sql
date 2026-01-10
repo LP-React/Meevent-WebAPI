@@ -1,44 +1,53 @@
--- Usuarios
-CREATE TRIGGER trg_auditoria_usuarios
-    AFTER INSERT OR UPDATE OR DELETE ON usuarios
-    FOR EACH ROW EXECUTE FUNCTION fn_auditoria_trigger('id_usuario');
+-- Users
+CREATE TRIGGER trg_audit_users
+    AFTER INSERT OR UPDATE OR DELETE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_trigger('user_id');
 
--- Eventos
-CREATE TRIGGER trg_auditoria_eventos
-    AFTER INSERT OR UPDATE OR DELETE ON eventos
-    FOR EACH ROW EXECUTE FUNCTION fn_auditoria_trigger('id_evento');
+-- Events
+CREATE TRIGGER trg_audit_events
+    AFTER INSERT OR UPDATE OR DELETE ON events
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_trigger('event_id');
 
--- Ordenes
-CREATE TRIGGER trg_auditoria_ordenes
-    AFTER INSERT OR UPDATE OR DELETE ON ordenes
-    FOR EACH ROW EXECUTE FUNCTION fn_auditoria_trigger('id_orden');
+-- Orders
+CREATE TRIGGER trg_audit_orders
+    AFTER INSERT OR UPDATE OR DELETE ON orders
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_trigger('order_id');
 
--- Pagos
-CREATE TRIGGER trg_auditoria_pagos
-    AFTER INSERT OR UPDATE OR DELETE ON pagos
-    FOR EACH ROW EXECUTE FUNCTION fn_auditoria_trigger('id_pago');
+-- Payments
+CREATE TRIGGER trg_audit_payments
+    AFTER INSERT OR UPDATE OR DELETE ON payments
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_trigger('payment_id');
 
--- Asistentes
-CREATE TRIGGER trg_auditoria_asistentes
-    AFTER INSERT OR UPDATE OR DELETE ON asistentes
-    FOR EACH ROW EXECUTE FUNCTION fn_auditoria_trigger('id_asistente');
+-- Attendees
+CREATE TRIGGER trg_audit_attendees
+    AFTER INSERT OR UPDATE OR DELETE ON attendees
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_trigger('attendee_id');
 
--- Tipos de Ticket
-CREATE TRIGGER trg_auditoria_tipos_ticket
-    AFTER INSERT OR UPDATE OR DELETE ON tipos_ticket
-    FOR EACH ROW EXECUTE FUNCTION fn_auditoria_trigger('id_tipo_ticket');
+-- Ticket Types
+CREATE TRIGGER trg_audit_ticket_types
+    AFTER INSERT OR UPDATE OR DELETE ON ticket_types
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_trigger('ticket_type_id');
 
--- Perfiles Organizador
-CREATE TRIGGER trg_auditoria_perfiles_organizador
-    AFTER INSERT OR UPDATE OR DELETE ON perfiles_organizador
-    FOR EACH ROW EXECUTE FUNCTION fn_auditoria_trigger('id_perfil_organizador');
+-- Organizer Profiles
+CREATE TRIGGER trg_audit_organizer_profiles
+    AFTER INSERT OR UPDATE OR DELETE ON organizer_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_trigger('organizer_profile_id');
 
--- Perfiles Artista
-CREATE TRIGGER trg_auditoria_perfiles_artista
-    AFTER INSERT OR UPDATE OR DELETE ON perfiles_artista
-    FOR EACH ROW EXECUTE FUNCTION fn_auditoria_trigger('id_perfil_artista');
+-- Artist Profiles
+CREATE TRIGGER trg_audit_artist_profiles
+    AFTER INSERT OR UPDATE OR DELETE ON artist_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_trigger('artist_profile_id');
 
--- Códigos Promocionales
-CREATE TRIGGER trg_auditoria_codigos_promocionales
-    AFTER INSERT OR UPDATE OR DELETE ON codigos_promocionales
-    FOR EACH ROW EXECUTE FUNCTION fn_auditoria_trigger('id_codigo_promocional');
+-- Promo Codes
+CREATE TRIGGER trg_audit_promo_codes
+    AFTER INSERT OR UPDATE OR DELETE ON promo_codes
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_audit_trigger('promo_code_id');
