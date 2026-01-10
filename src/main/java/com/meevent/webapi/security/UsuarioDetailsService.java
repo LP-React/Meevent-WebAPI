@@ -21,11 +21,6 @@ public class UsuarioDetailsService implements UserDetailsService {
         Usuario u = usuarioRepository.findByCorreoElectronico(email)
                 .orElseThrow(() -> new UsernameNotFoundException("No existe"));
 
-        return User.builder()
-                .username(u.getCorreoElectronico())
-                .password(u.getContrasenaHash())
-                .roles(u.getTipoUsuario().name())
-                .disabled(!u.getCuentaActiva())
-                .build();
+        return new UsuarioDetails(u);
     }
 }
