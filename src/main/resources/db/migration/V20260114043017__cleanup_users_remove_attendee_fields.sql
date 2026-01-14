@@ -1,0 +1,11 @@
+ALTER TABLE users
+DROP COLUMN IF EXISTS full_name;
+
+ALTER TABLE users
+DROP COLUMN IF EXISTS birth_date;
+
+ALTER TABLE users
+DROP COLUMN IF EXISTS city_id;
+
+ALTER TABLE users
+DROP COLUMN IF EXISTS user_type;

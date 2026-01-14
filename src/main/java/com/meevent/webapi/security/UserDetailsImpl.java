@@ -23,7 +23,7 @@ public class UserDetailsImpl implements UserDetails {
         this.password = user.getPasswordHash();
         this.active = user.getActive();
         this.authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_" + user.getUserType().name())
+                new SimpleGrantedAuthority("ROLE_USER")
         );
     }
 
