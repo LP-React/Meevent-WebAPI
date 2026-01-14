@@ -6,6 +6,7 @@ import com.meevent.webapi.dto.response.AuthResponse;
 import com.meevent.webapi.model.City;
 import com.meevent.webapi.model.User;
 import com.meevent.webapi.model.enums.UserRol;
+import com.meevent.webapi.model.enums.UserVerificationStatus;
 import com.meevent.webapi.repository.ICityRepository;
 import com.meevent.webapi.repository.IUserRepository;
 import com.meevent.webapi.security.JwtService;
@@ -68,7 +69,7 @@ public class AuthService {
         user.setPhoneNumber(request.phoneNumber());
         user.setBirthDate(request.birthDate());
         user.setActive(true);
-        user.setEmailVerified(false);
+        user.setVerificationStatus(UserVerificationStatus.NOT_VERIFIED);
 
         City city = cityRepository.findById(request.cityId())
                 .orElseThrow(() ->
