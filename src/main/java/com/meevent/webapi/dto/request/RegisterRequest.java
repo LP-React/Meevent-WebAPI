@@ -37,5 +37,13 @@ public record RegisterRequest(
 
         @NotNull(message = "City is required")
         @JsonProperty("city_id")
-        Long cityId
+        Long cityId,
+
+        @Pattern(
+                regexp = "^\\+[1-9][0-9]{0,3}$",
+                message = "Invalid country code format"
+        )
+        @JsonProperty("country_code")
+        String countryCode
+
 ) {}

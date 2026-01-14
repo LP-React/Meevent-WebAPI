@@ -59,6 +59,19 @@ public class AuthService {
             throw new IllegalArgumentException("Email is already registered");
         }
 
+        String countryCode = request.countryCode();
+        String phoneNumber = request.phoneNumber();
+
+        String phoneE164 = null;
+
+        if (countryCode != null && phoneNumber != null) {
+            phoneE164 = countryCode + phoneNumber;
+        }
+
+        if (phoneE164 != null && userRepository.existsByPhoneE164(phoneE164)) {
+            throw new IllegalArgumentException("Phone number is already registered");
+        }
+
         User user = new User();
         user.setFullName(request.fullName());
         user.setEmail(request.email());
@@ -66,7 +79,9 @@ public class AuthService {
                 passwordEncoder.encode(request.password())
         );
         user.setUserType(UserRol.normal);
-        user.setPhoneNumber(request.phoneNumber());
+        user.setCountryCode(countryCode);
+        user.setPhoneNumber(phoneNumber);
+        user.setPhoneE164(phoneE164);
         user.setBirthDate(request.birthDate());
         user.setActive(true);
         user.setVerificationStatus(UserVerificationStatus.NOT_VERIFIED);
