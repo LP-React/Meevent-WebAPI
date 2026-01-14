@@ -1,4 +1,4 @@
-package com.meevent.webapi.Controller;
+package com.meevent.webapi.Controller.v1;
 
 import com.meevent.webapi.dto.request.LoginRequest;
 import com.meevent.webapi.dto.request.RegisterRequest;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
