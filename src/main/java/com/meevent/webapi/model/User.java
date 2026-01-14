@@ -28,15 +28,6 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "country_code", length = 5)
-    private String countryCode;
-
-    @Column(name = "phone_number")
-    private String phoneNumber;
-
-    @Column(name = "phone_e164", length = 20, unique = true)
-    private String phoneE164;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "verification_status", nullable = false)
     private UserVerificationStatus verificationStatus;

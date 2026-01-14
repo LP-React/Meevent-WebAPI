@@ -35,6 +35,15 @@ public class AttendeeProfile {
     @JoinColumn(name = "city_id", nullable = false)
     private City city;
 
+    @Column(name = "country_code", length = 5)
+    private String countryCode;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Column(name = "phone_e164", length = 20, unique = true)
+    private String phoneE164;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -73,7 +73,7 @@ public class AuthService {
             phoneE164 = countryCode + phoneNumber;
         }
 
-        if (phoneE164 != null && userRepository.existsByPhoneE164(phoneE164)) {
+        if (phoneE164 != null && attendeeProfileRepository.existsByPhoneE164(phoneE164)) {
             throw new IllegalArgumentException("Phone number is already registered");
         }
 
@@ -82,9 +82,6 @@ public class AuthService {
         user.setPasswordHash(
                 passwordEncoder.encode(request.password())
         );
-        user.setCountryCode(request.countryCode());
-        user.setPhoneNumber(request.phoneNumber());
-        user.setPhoneE164(phoneE164);
         user.setActive(true);
         user.setVerificationStatus(UserVerificationStatus.NOT_VERIFIED);
 
@@ -100,6 +97,9 @@ public class AuthService {
         attendeeProfile.setFullName(request.fullName());
         attendeeProfile.setBirthDate(request.birthDate());
         attendeeProfile.setCity(city);
+        attendeeProfile.setCountryCode(request.countryCode());
+        attendeeProfile.setPhoneNumber(request.phoneNumber());
+        attendeeProfile.setPhoneE164(phoneE164);
 
         attendeeProfileRepository.save(attendeeProfile);
 
