@@ -1,8 +1,10 @@
 package com.meevent.webapi.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 @Table(name = "countries")
 public class Country {
 
