@@ -6,7 +6,6 @@ import com.meevent.webapi.dto.response.AuthResponse;
 import com.meevent.webapi.model.AttendeeProfile;
 import com.meevent.webapi.model.City;
 import com.meevent.webapi.model.User;
-import com.meevent.webapi.model.enums.UserRol;
 import com.meevent.webapi.model.enums.UserVerificationStatus;
 import com.meevent.webapi.repository.IAttendeeProfileRepository;
 import com.meevent.webapi.repository.ICityRepository;
