@@ -33,7 +33,6 @@ public class AuthService {
 
     private final IMailService mailService; /* <-- Azure service implementation */
     private final IVerificationTokenRepository tokenRepository;
-    //private final MailServiceImpl mailService; (for gmail testing)
     private final IUserRepository userRepository;
     private final ICityRepository cityRepository;
     private final PasswordEncoder passwordEncoder;

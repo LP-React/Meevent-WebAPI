@@ -1,8 +1,6 @@
 package com.meevent.webapi.service.IMailService;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import com.azure.communication.email.EmailClient;
@@ -13,8 +11,6 @@ import com.azure.communication.email.models.EmailSendResult;
 import com.azure.core.util.polling.SyncPoller;
 
 @Service
-@Profile("dev")
-@Primary
 public class AzureMailServiceImpl implements IMailService {
 
     @Value("${azure.connection.string}")
