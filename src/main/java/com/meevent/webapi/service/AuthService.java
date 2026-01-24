@@ -23,7 +23,7 @@ import com.meevent.webapi.repository.ICityRepository;
 import com.meevent.webapi.repository.IUserRepository;
 import com.meevent.webapi.repository.IVerificationTokenRepository;
 import com.meevent.webapi.security.JwtService;
-import com.meevent.webapi.service.IMailService.MailServiceImpl;
+import com.meevent.webapi.service.IMailService.IMailService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,8 +31,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private final IMailService mailService;
     private final IVerificationTokenRepository tokenRepository;
-    private final MailServiceImpl mailService;
+    //private final MailServiceImpl mailService; (for gmail testing)
     private final IUserRepository userRepository;
     private final ICityRepository cityRepository;
     private final PasswordEncoder passwordEncoder;
