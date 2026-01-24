@@ -27,7 +27,7 @@ public class AttendeeService {
     private final ICityRepository cityRepository;
 
     @Transactional
-    public AttendeeProfileResponse updateProfile(String userEmail, UpdateAttendeeProfileRequest request) {
+    public void updateProfile(String userEmail, UpdateAttendeeProfileRequest request) {
         LOGGER.info("Actualizando perfil para: {}", userEmail);
 
         User user = userRepository.findByEmailIgnoreCase(userEmail)
@@ -75,7 +75,6 @@ public class AttendeeService {
         AttendeeProfile savedProfile = attendeeProfileRepository.save(profile);
         LOGGER.info("Perfil actualizado. E164 final: {}", savedProfile.getPhoneE164());
 
-        return mapToResponseRecord(savedProfile);
     }
 
     private void recalculateE164(AttendeeProfile profile) {
