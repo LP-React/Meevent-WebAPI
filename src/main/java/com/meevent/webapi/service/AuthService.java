@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final IMailService mailService;
+    private final IMailService mailService; /* <-- Azure service implementation */
     private final IVerificationTokenRepository tokenRepository;
     //private final MailServiceImpl mailService; (for gmail testing)
     private final IUserRepository userRepository;
