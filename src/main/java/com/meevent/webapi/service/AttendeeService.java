@@ -27,7 +27,7 @@ public class AttendeeService {
     private final ICityRepository cityRepository;
 
     @Transactional
-    public AttendeeProfileResponse updateProfile(String userEmail, UpdateAttendeeProfileRequest request) {
+    public void updateProfile(String userEmail, UpdateAttendeeProfileRequest request) {
         LOGGER.info("Actualizando perfil para: {}", userEmail);
 
         User user = userRepository.findByEmailIgnoreCase(userEmail)
@@ -61,12 +61,20 @@ public class AttendeeService {
 
         if (request.phoneNumber() != null || request.countryCode() != null) {
             recalculateE164(profile);
+
+            boolean exists = attendeeProfileRepository.existsByPhoneE164AndAttendeeProfileIdNot(
+                    profile.getPhoneE164(),
+                    profile.getAttendeeProfileId()
+            );
+
+            if (exists) {
+                throw new RuntimeException("El número de teléfono ya está registrado por otro usuario");
+            }
         }
 
         AttendeeProfile savedProfile = attendeeProfileRepository.save(profile);
         LOGGER.info("Perfil actualizado. E164 final: {}", savedProfile.getPhoneE164());
 
-        return mapToResponseRecord(savedProfile);
     }
 
     private void recalculateE164(AttendeeProfile profile) {

@@ -7,6 +7,7 @@ import com.meevent.webapi.exceptions.dtos.ValidationErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -115,4 +116,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ExceptionDTO> handleDataIntegrity(
+            org.springframework.dao.DataIntegrityViolationException ex,
+            HttpServletRequest request
+    ) {
+        LOGGER.warn("Intento de duplicado: {}", ex.getMessage());
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                "El dato enviado ya existe en el sistema.",
+                request
+        );
+    }
 }
