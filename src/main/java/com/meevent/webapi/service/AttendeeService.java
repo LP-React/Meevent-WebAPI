@@ -61,6 +61,15 @@ public class AttendeeService {
 
         if (request.phoneNumber() != null || request.countryCode() != null) {
             recalculateE164(profile);
+
+            boolean exists = attendeeProfileRepository.existsByPhoneE164AndAttendeeProfileIdNot(
+                    profile.getPhoneE164(),
+                    profile.getAttendeeProfileId()
+            );
+
+            if (exists) {
+                throw new RuntimeException("El número de teléfono ya está registrado por otro usuario");
+            }
         }
 
         AttendeeProfile savedProfile = attendeeProfileRepository.save(profile);

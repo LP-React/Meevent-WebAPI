@@ -13,4 +13,6 @@ public interface IAttendeeProfileRepository extends JpaRepository<AttendeeProfil
     boolean existsByPhoneE164(String phoneE164);
 
     Optional<AttendeeProfile> findByUser(User user);
+
+    boolean existsByPhoneE164AndAttendeeProfileIdNot(String phoneE164, Long id);
 }
