@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.meevent.webapi.dto.request.LoginRequest;
 import com.meevent.webapi.dto.request.RegisterRequest;
-import com.meevent.webapi.dto.request.VerificationToken;
+import com.meevent.webapi.model.VerificationToken;
 import com.meevent.webapi.dto.response.AuthResponse;
 import com.meevent.webapi.model.AttendeeProfile;
 import com.meevent.webapi.model.City;
@@ -52,6 +52,10 @@ public class AuthService {
             throw new IllegalStateException("Account is disabled");
         }
 
+        if (user.getVerificationStatus() != UserVerificationStatus.VERIFIED) {
+            throw new IllegalStateException("Account is not verified");
+        }
+
         if (!passwordEncoder.matches(
                 request.password(),
                 user.getPasswordHash()
@@ -69,7 +73,7 @@ public class AuthService {
 
     @Transactional
     @Async
-    public AuthResponse register(RegisterRequest request) {
+    public void register(RegisterRequest request) {
 
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
             throw new IllegalArgumentException("Email is already registered");
@@ -123,17 +127,10 @@ public class AuthService {
         attendeeProfile.setPhoneE164(phoneE164);
 
         attendeeProfileRepository.save(attendeeProfile);
-
-        UserDetails userDetails
-                = userDetailsService.loadUserByUsername(user.getEmail());
-
-        return new AuthResponse(
-                jwtService.generateToken(userDetails)
-        );
     }
 
     @Transactional
-    public void verifyEmail(String tokenValue) {
+    public AuthResponse verifyEmail(String tokenValue) {
         VerificationToken token = tokenRepository.findByToken(tokenValue)
                 .orElseThrow(() -> new RuntimeException("Token no encontrado"));
 
@@ -150,8 +147,11 @@ public class AuthService {
         user.setVerificationStatus(UserVerificationStatus.VERIFIED);
         userRepository.save(user);
 
-        // Change state of token from PENDING to USED creo 
+        // Change state of token from PENDING to USED creo
         token.setUsed(true);
         tokenRepository.save(token);
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+        return new AuthResponse(jwtService.generateToken(userDetails));
     }
 }
