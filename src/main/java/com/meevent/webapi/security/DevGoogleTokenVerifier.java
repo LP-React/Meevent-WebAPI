@@ -13,12 +13,12 @@ import org.springframework.stereotype.Component;
 public class DevGoogleTokenVerifier extends GoogleTokenVerifier {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DevGoogleTokenVerifier.class);
+    private static final String DEV_TOKEN_PREFIX = "dev-test-";
 
     @Override
     public GoogleIdToken.Payload verify(String idTokenString) {
-        // In dev profile, accept a special test token format: "dev-test-{email}"
-        if (idTokenString != null && idTokenString.startsWith("dev-test-")) {
-            String email = idTokenString.substring("dev-test-".length());
+        if (idTokenString != null && idTokenString.startsWith(DEV_TOKEN_PREFIX)) {
+            String email = idTokenString.substring(DEV_TOKEN_PREFIX.length());
             LOGGER.info("DEV MODE: Accepting test token for email={}", email);
 
             GoogleIdToken.Payload payload = new GoogleIdToken.Payload();

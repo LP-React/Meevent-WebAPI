@@ -38,6 +38,7 @@ import com.meevent.webapi.repository.IUserRepository;
 import com.meevent.webapi.repository.IVerificationTokenRepository;
 import com.meevent.webapi.security.GoogleTokenVerifier;
 import com.meevent.webapi.security.JwtService;
+import com.meevent.webapi.security.UserDetailsImpl;
 import com.meevent.webapi.service.IMailService.IMailService;
 
 import lombok.RequiredArgsConstructor;
@@ -270,8 +271,7 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid credentials");
         }
         LOGGER.info("Google login: returning user, userId={}", user.getUserId());
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        return new AuthResponse(jwtService.generateToken(userDetails));
+        return generateAuthResponse(user);
     }
 
     private AuthResponse handleAccountLinking(User user, String googleSub) {
@@ -289,9 +289,7 @@ public class AuthService {
         }
 
         userRepository.save(user);
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        return new AuthResponse(jwtService.generateToken(userDetails));
+        return generateAuthResponse(user);
     }
 
     private AuthResponse handleNewGoogleUser(String email, String googleSub, String fullName) {
@@ -312,8 +310,11 @@ public class AuthService {
         attendeeProfileRepository.save(attendeeProfile);
 
         LOGGER.info("Google login: new user and profile created, userId={}, profileId={}", user.getUserId(), attendeeProfile.getAttendeeProfileId());
+        return generateAuthResponse(user);
+    }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+    private AuthResponse generateAuthResponse(User user) {
+        UserDetails userDetails = new UserDetailsImpl(user);
         return new AuthResponse(jwtService.generateToken(userDetails));
     }
 
