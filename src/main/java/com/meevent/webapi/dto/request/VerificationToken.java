@@ -1,4 +1,4 @@
-package com.meevent.webapi.model;
+package com.meevent.webapi.dto.request;
 
 import java.time.LocalDateTime;
 
@@ -34,7 +34,7 @@ public class VerificationToken {
     private User toUser;
 
     private LocalDateTime expiryDate;
-
+    
     private boolean used = false;
 
     public VerificationToken(String token, User user, int expiryHours) {
