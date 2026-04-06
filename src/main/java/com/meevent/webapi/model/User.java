@@ -1,5 +1,6 @@
 package com.meevent.webapi.model;
 
+import com.meevent.webapi.model.enums.AuthProvider;
 import com.meevent.webapi.model.enums.UserVerificationStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,8 +26,15 @@ public class User {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider", nullable = false)
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    @Column(name = "google_sub", unique = true)
+    private String googleSub;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "verification_status", nullable = false)

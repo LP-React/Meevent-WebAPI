@@ -54,6 +54,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claim("role", role)
+                .claim("auth_provider", ((UserDetailsImpl) userDetails).getAuthProvider().name())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(accessTokenExpiration)))
                 .signWith(signingKey)

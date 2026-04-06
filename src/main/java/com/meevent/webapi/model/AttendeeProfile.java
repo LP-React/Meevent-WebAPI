@@ -32,7 +32,7 @@ public class AttendeeProfile {
     private LocalDate birthDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "city_id", nullable = false)
+    @JoinColumn(name = "city_id")
     private City city;
 
     @Column(name = "country_code", length = 5)

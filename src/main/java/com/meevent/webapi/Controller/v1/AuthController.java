@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.meevent.webapi.dto.request.ForgotPasswordRequest;
+import com.meevent.webapi.dto.request.GoogleLoginRequest;
 import com.meevent.webapi.dto.request.LoginRequest;
 import com.meevent.webapi.dto.request.RegisterRequest;
 import com.meevent.webapi.dto.request.ResetPasswordRequest;
@@ -36,7 +37,11 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Registro exitoso. Revisa tu correo para verificar tu cuenta.");
     }
 
-    //---new endpoint
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> loginWithGoogle(@Valid @RequestBody GoogleLoginRequest request) {
+        return ResponseEntity.ok(_authService.loginWithGoogle(request));
+    }
+
     @PostMapping("/verify-email")
     public ResponseEntity<AuthResponse> verifyEmail(@RequestParam String token) {
         return ResponseEntity.ok(_authService.verifyEmail(token));
