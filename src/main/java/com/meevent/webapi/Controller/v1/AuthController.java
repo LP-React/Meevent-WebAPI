@@ -29,16 +29,14 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        AuthResponse response = _authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
+        _authService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Registro exitoso. Revisa tu correo para verificar tu cuenta.");
     }
-
 
     //---new endpoint
     @PostMapping("/verify-email")
-    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
-        _authService.verifyEmail(token);
-        return ResponseEntity.ok("Cuenta verificada exitosamente");
+    public ResponseEntity<AuthResponse> verifyEmail(@RequestParam String token) {
+        return ResponseEntity.ok(_authService.verifyEmail(token));
     }
 }
