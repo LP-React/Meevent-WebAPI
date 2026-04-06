@@ -3,7 +3,8 @@ package com.meevent.webapi.service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.springframework.scheduling.annotation.Async;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +32,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
+
     private final IMailService mailService; /* <-- Azure service implementation */
     private final IVerificationTokenRepository tokenRepository;
     private final IUserRepository userRepository;
@@ -49,11 +52,13 @@ public class AuthService {
                 );
 
         if (!user.getActive()) {
-            throw new IllegalStateException("Account is disabled");
+            LOGGER.warn("Login attempt on disabled account: email={}", request.email());
+            throw new IllegalArgumentException("Invalid credentials");
         }
 
         if (user.getVerificationStatus() != UserVerificationStatus.VERIFIED) {
-            throw new IllegalStateException("Account is not verified");
+            LOGGER.warn("Login attempt on unverified account: email={}", request.email());
+            throw new IllegalArgumentException("Invalid credentials");
         }
 
         if (!passwordEncoder.matches(
@@ -72,7 +77,6 @@ public class AuthService {
     }
 
     @Transactional
-    @Async
     public void register(RegisterRequest request) {
 
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
@@ -101,6 +105,7 @@ public class AuthService {
         user.setVerificationStatus(UserVerificationStatus.PENDING); /* <--- change form not_verified to ---> pending */
 
         userRepository.save(user);
+        LOGGER.info("User registered successfully: email={}", user.getEmail());
 
         String tokenValue = UUID.randomUUID().toString();
         VerificationToken token = new VerificationToken(tokenValue, user, 1); /*<--- An hour to expire the token */
@@ -108,9 +113,7 @@ public class AuthService {
         String subject = "Verifica tu cuenta en Meevent";
         String message = "¡Hola! Gracias por registrarte. Haz clic en el siguiente enlace para verificar tu cuenta: ";
 
-        String verificationLink = tokenValue;
-
-        mailService.sendVerificationEmail(user.getEmail(), subject, message, verificationLink);
+        mailService.sendVerificationEmail(user.getEmail(), subject, message, tokenValue);
 
         City city = cityRepository.findById(request.cityId())
                 .orElseThrow(()
@@ -132,14 +135,19 @@ public class AuthService {
     @Transactional
     public AuthResponse verifyEmail(String tokenValue) {
         VerificationToken token = tokenRepository.findByToken(tokenValue)
-                .orElseThrow(() -> new RuntimeException("Token no encontrado"));
+                .orElseThrow(() -> {
+                    LOGGER.warn("Verification attempt with unknown token");
+                    return new RuntimeException("Token invalido o expirado");
+                });
 
         if (token.isUsed()) {
-            throw new RuntimeException("Este token ya ha sido utilizado");
+            LOGGER.warn("Verification attempt with used token: tokenId={}", token.getId());
+            throw new RuntimeException("Token invalido o expirado");
         }
 
         if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("El token ha expirado");
+            LOGGER.warn("Verification attempt with expired token: tokenId={}", token.getId());
+            throw new RuntimeException("Token invalido o expirado");
         }
 
         // User updated
