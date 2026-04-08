@@ -2,6 +2,7 @@ package com.meevent.webapi.exceptions.controlleradvice;
 
 import com.meevent.webapi.exceptions.dtos.ExceptionDTO;
 import com.meevent.webapi.exceptions.dtos.FieldErrorDTO;
+import com.meevent.webapi.exceptions.dtos.InvalidTokenException;
 import com.meevent.webapi.exceptions.dtos.NotFoundException;
 import com.meevent.webapi.exceptions.dtos.ValidationErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
@@ -74,6 +75,15 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request
         );
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ExceptionDTO> handleInvalidToken(
+            InvalidTokenException ex,
+            HttpServletRequest request
+    ) {
+        LOGGER.warn("Invalid token: {}", ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler(RuntimeException.class)
