@@ -1,0 +1,39 @@
+meta {
+  name: Update Attendee Profile
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/attendees/profile
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "full_name": "Updated Name",
+    "city_id": 1,
+    "birth_date": "1995-06-15",
+    "country_code": "+51",
+    "phone_number": "987654321"
+  }
+}
+
+tests {
+  test("Status 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has message", function() {
+    expect(res.getBody()).to.have.property("message");
+  });
+
+  test("Message confirms update", function() {
+    expect(res.getBody().message).to.equal("Perfil actualizado correctamente");
+  });
+}

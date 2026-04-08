@@ -1,6 +1,10 @@
 package com.meevent.webapi.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.HexFormat;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -11,16 +15,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.meevent.webapi.dto.request.ForgotPasswordRequest;
 import com.meevent.webapi.dto.request.LoginRequest;
 import com.meevent.webapi.dto.request.RegisterRequest;
-import com.meevent.webapi.model.VerificationToken;
+import com.meevent.webapi.dto.request.ResetPasswordRequest;
 import com.meevent.webapi.dto.response.AuthResponse;
 import com.meevent.webapi.model.AttendeeProfile;
 import com.meevent.webapi.model.City;
+import com.meevent.webapi.model.PasswordResetToken;
 import com.meevent.webapi.model.User;
+import com.meevent.webapi.model.VerificationToken;
 import com.meevent.webapi.model.enums.UserVerificationStatus;
 import com.meevent.webapi.repository.IAttendeeProfileRepository;
 import com.meevent.webapi.repository.ICityRepository;
+import com.meevent.webapi.repository.IPasswordResetTokenRepository;
 import com.meevent.webapi.repository.IUserRepository;
 import com.meevent.webapi.repository.IVerificationTokenRepository;
 import com.meevent.webapi.security.JwtService;
@@ -36,6 +44,7 @@ public class AuthService {
 
     private final IMailService mailService; /* <-- Azure service implementation */
     private final IVerificationTokenRepository tokenRepository;
+    private final IPasswordResetTokenRepository passwordResetTokenRepository;
     private final IUserRepository userRepository;
     private final ICityRepository cityRepository;
     private final PasswordEncoder passwordEncoder;
@@ -161,5 +170,62 @@ public class AuthService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         return new AuthResponse(jwtService.generateToken(userDetails));
+    }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        userRepository.findByEmailIgnoreCase(request.email()).ifPresent(user -> {
+            passwordResetTokenRepository.deleteByToUser(user);
+
+            String rawToken = UUID.randomUUID().toString();
+            String tokenHash = sha256(rawToken);
+
+            PasswordResetToken resetToken = new PasswordResetToken(tokenHash, user, 30);
+            passwordResetTokenRepository.save(resetToken);
+
+            mailService.sendPasswordResetEmail(user.getEmail(), rawToken);
+            LOGGER.info("Password reset email sent: email={}", user.getEmail());
+        });
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        String tokenHash = sha256(request.token());
+
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> {
+                    LOGGER.warn("Password reset attempt with unknown token");
+                    return new RuntimeException("Token invalido o expirado");
+                });
+
+        if (resetToken.isUsed()) {
+            LOGGER.warn("Password reset attempt with used token: tokenId={}", resetToken.getId());
+            throw new RuntimeException("Token invalido o expirado");
+        }
+
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            LOGGER.warn("Password reset attempt with expired token: tokenId={}", resetToken.getId());
+            throw new RuntimeException("Token invalido o expirado");
+        }
+
+        User user = resetToken.getToUser();
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
+
+        mailService.sendPasswordChangeConfirmationEmail(user.getEmail());
+        LOGGER.info("Password reset successful: email={}", user.getEmail());
+    }
+
+    private String sha256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 not available", e);
+        }
     }
 }

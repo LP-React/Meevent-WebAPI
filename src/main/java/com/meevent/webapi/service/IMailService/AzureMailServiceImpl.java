@@ -76,7 +76,93 @@ public class AzureMailServiceImpl implements IMailService {
         } catch (Exception e) {
             System.err.println("Error en Azure Mail: " + e.getMessage());
         }
+    }
 
+    @Override
+    public void sendPasswordResetEmail(String toUser, String token) {
+        try {
+            EmailClient emailClient = new EmailClientBuilder()
+                    .connectionString(connectionString).buildClient();
+            String brandColor = "#E2125D";
+
+            String htmlContent = "<html><body style='margin:0; padding:0; background-color: #f4f4f4;'>"
+                    + "<table width='100%' bgcolor='#f4f4f4' cellpadding='0' cellspacing='0' style='border-collapse: collapse;'>"
+                    + "  <tr><td align='center' style='padding: 20px 0;'>"
+                    + "    <table width='600' bgcolor='#ffffff' cellpadding='0' cellspacing='0' style='border-collapse: collapse; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);'>"
+                    + "      <tr><td bgcolor='" + brandColor + "' align='center' style='padding: 30px;'>"
+                    + "        <h1 style='color:#ffffff; font-family:Arial,sans-serif; margin:0;'>Meevent</h1>"
+                    + "      </td></tr>"
+                    + "      <tr><td align='center' style='padding: 50px 40px; font-family: Arial, sans-serif;'>"
+                    + "        <h2 style='color: #222222; font-size: 24px; margin-bottom: 25px;'>Restablecer contraseña</h2>"
+                    + "        <p style='color: #555555; font-size: 16px; margin-bottom: 35px;'>Recibimos una solicitud para restablecer tu contraseña. El enlace expira en 30 minutos.</p>"
+                    + "        <a href='http://tu-frontend.com/reset-password?token=" + token + "' style='background-color:" + brandColor + "; color: #ffffff; padding: 16px 60px; text-decoration: none; border-radius: 50px; font-weight: bold; display: inline-block; font-size: 18px;'>Restablecer contraseña</a>"
+                    + "        <p style='margin-top: 45px; color: #888888; font-size: 13px;'>Si no solicitaste este cambio, ignora este correo. Tu contraseña no será modificada.</p>"
+                    + "        <p style='margin-top: 20px; color: #888888; font-size: 13px;'>"
+                    + "          Código de restablecimiento:<br/>"
+                    + "          <span style='font-family: monospace; background-color: #f8f8f8; padding: 8px 15px; border: 1px dashed #cccccc; display: inline-block; margin-top: 10px; color: #333;'>" + token + "</span>"
+                    + "        </p>"
+                    + "      </td></tr>"
+                    + "      <tr><td bgcolor='#f8f8f8' align='center' style='padding: 30px; border-top: 1px solid #eeeeee;'>"
+                    + "        <p style='color: #777777; font-size: 12px; margin: 0;'>© 2026 Meevent | Lima, Lima, Perú</p>"
+                    + "      </td></tr>"
+                    + "    </table>"
+                    + "  </td></tr>"
+                    + "</table></body></html>";
+
+            EmailMessage emailMessage = new EmailMessage()
+                    .setSenderAddress(fromEmail)
+                    .setToRecipients(new EmailAddress(toUser))
+                    .setSubject("Restablece tu contraseña en Meevent")
+                    .setBodyHtml(htmlContent);
+
+            SyncPoller<EmailSendResult, EmailSendResult> poller = emailClient.beginSend(emailMessage, null);
+            poller.waitForCompletion();
+
+            System.out.println("Correo de restablecimiento enviado con Azure a: " + toUser);
+        } catch (Exception e) {
+            System.err.println("Error en Azure Mail: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void sendPasswordChangeConfirmationEmail(String toUser) {
+        try {
+            EmailClient emailClient = new EmailClientBuilder()
+                    .connectionString(connectionString).buildClient();
+            String brandColor = "#E2125D";
+
+            String htmlContent = "<html><body style='margin:0; padding:0; background-color: #f4f4f4;'>"
+                    + "<table width='100%' bgcolor='#f4f4f4' cellpadding='0' cellspacing='0' style='border-collapse: collapse;'>"
+                    + "  <tr><td align='center' style='padding: 20px 0;'>"
+                    + "    <table width='600' bgcolor='#ffffff' cellpadding='0' cellspacing='0' style='border-collapse: collapse; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);'>"
+                    + "      <tr><td bgcolor='" + brandColor + "' align='center' style='padding: 30px;'>"
+                    + "        <h1 style='color:#ffffff; font-family:Arial,sans-serif; margin:0;'>Meevent</h1>"
+                    + "      </td></tr>"
+                    + "      <tr><td align='center' style='padding: 50px 40px; font-family: Arial, sans-serif;'>"
+                    + "        <h2 style='color: #222222; font-size: 24px; margin-bottom: 25px;'>Tu contraseña fue cambiada</h2>"
+                    + "        <p style='color: #555555; font-size: 16px; margin-bottom: 35px;'>Tu contraseña de Meevent fue actualizada exitosamente.</p>"
+                    + "        <p style='color: #E2125D; font-size: 15px; font-weight: bold;'>Si no fuiste tú quien realizó este cambio, contacta a soporte inmediatamente.</p>"
+                    + "      </td></tr>"
+                    + "      <tr><td bgcolor='#f8f8f8' align='center' style='padding: 30px; border-top: 1px solid #eeeeee;'>"
+                    + "        <p style='color: #777777; font-size: 12px; margin: 0;'>© 2026 Meevent | Lima, Lima, Perú</p>"
+                    + "      </td></tr>"
+                    + "    </table>"
+                    + "  </td></tr>"
+                    + "</table></body></html>";
+
+            EmailMessage emailMessage = new EmailMessage()
+                    .setSenderAddress(fromEmail)
+                    .setToRecipients(new EmailAddress(toUser))
+                    .setSubject("Tu contraseña de Meevent fue cambiada")
+                    .setBodyHtml(htmlContent);
+
+            SyncPoller<EmailSendResult, EmailSendResult> poller = emailClient.beginSend(emailMessage, null);
+            poller.waitForCompletion();
+
+            System.out.println("Correo de confirmación enviado con Azure a: " + toUser);
+        } catch (Exception e) {
+            System.err.println("Error en Azure Mail: " + e.getMessage());
+        }
     }
 
 }
