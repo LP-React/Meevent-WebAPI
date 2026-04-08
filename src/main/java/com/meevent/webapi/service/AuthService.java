@@ -20,6 +20,7 @@ import com.meevent.webapi.dto.request.LoginRequest;
 import com.meevent.webapi.dto.request.RegisterRequest;
 import com.meevent.webapi.dto.request.ResetPasswordRequest;
 import com.meevent.webapi.dto.response.AuthResponse;
+import com.meevent.webapi.exceptions.dtos.InvalidTokenException;
 import com.meevent.webapi.model.AttendeeProfile;
 import com.meevent.webapi.model.City;
 import com.meevent.webapi.model.PasswordResetToken;
@@ -146,17 +147,17 @@ public class AuthService {
         VerificationToken token = tokenRepository.findByToken(tokenValue)
                 .orElseThrow(() -> {
                     LOGGER.warn("Verification attempt with unknown token");
-                    return new RuntimeException("Token invalido o expirado");
+                    return new InvalidTokenException("Token invalido o expirado");
                 });
 
         if (token.isUsed()) {
             LOGGER.warn("Verification attempt with used token: tokenId={}", token.getId());
-            throw new RuntimeException("Token invalido o expirado");
+            throw new InvalidTokenException("Token invalido o expirado");
         }
 
         if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
             LOGGER.warn("Verification attempt with expired token: tokenId={}", token.getId());
-            throw new RuntimeException("Token invalido o expirado");
+            throw new InvalidTokenException("Token invalido o expirado");
         }
 
         // User updated
@@ -195,17 +196,17 @@ public class AuthService {
         PasswordResetToken resetToken = passwordResetTokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> {
                     LOGGER.warn("Password reset attempt with unknown token");
-                    return new RuntimeException("Token invalido o expirado");
+                    return new InvalidTokenException("Token invalido o expirado");
                 });
 
         if (resetToken.isUsed()) {
             LOGGER.warn("Password reset attempt with used token: tokenId={}", resetToken.getId());
-            throw new RuntimeException("Token invalido o expirado");
+            throw new InvalidTokenException("Token invalido o expirado");
         }
 
         if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
             LOGGER.warn("Password reset attempt with expired token: tokenId={}", resetToken.getId());
-            throw new RuntimeException("Token invalido o expirado");
+            throw new InvalidTokenException("Token invalido o expirado");
         }
 
         User user = resetToken.getToUser();
